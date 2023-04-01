@@ -1,0 +1,389 @@
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="/xterm.min.css" rel="stylesheet" />
+<link href="/css/fontawesome.min.css" rel="stylesheet" />
+<link href="/css/solid.min.css" rel="stylesheet" />
+<style>
+  body, pre { margin: 0; padding: 0px; color: rgba(0,0,0,0.8); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  .input-field {
+    background: rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: row;
+    box-sizing: border-box;
+  }
+  .logo {
+    text-align: center;
+    padding: 10px;
+  }
+  html {
+    background: rgb(43, 45, 49);
+  }
+  header {
+    background: rgb(43, 45, 49);
+    position: fixed;
+    top: 0;
+    left:0;
+    right: 0;
+    transition: max-height 0.2s ease-in-out;
+    max-height: 300px;
+    box-shadow: rgba(255,255,255, 0.04) 0px 1px 2px 0px;
+    background: rgb(43, 45, 49);
+    color: white;
+    z-index: 100;
+  }
+  header.collapsed {
+    max-height: 0;
+    overflow: hidden;
+  }
+  #form {
+    background: rgb(43,45,49);
+    margin: 0;
+    display: flex;
+  }
+  #form button:hover {
+    color: yellowgreen;
+  }
+  #form button {
+    padding: 10px 20px;
+    border-radius: 0;
+    border: none;
+    color: white;
+    background: rgba(0,0,0,0.3);
+    box-sizing: border-box;
+    cursor: pointer;
+  }
+  [contenteditable]:empty:before{
+    content:attr(data-placeholder);
+    color:grey;
+    font-weight: bold;
+  }
+  #input {
+    padding: 20px;
+    background: rgba(0,0,0,0.3);
+    color: white;
+    white-space: pre-wrap;
+    outline: none;
+    border: none;
+    flex-grow: 1;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+  #input:focus { outline: none; }
+
+  #messages { list-style-type: none; margin: 0; box-sizing: border-box; font-size: 14px; padding: 0; }
+  #messages > li { padding: 10px; font-size: 14px; box-sizing: border-box; }
+  #messages > li:nth-child(odd) { background: #efefef; }
+  li { white-space: pre-wrap; }
+  .loading {
+    margin-bottom: 10px;
+    padding: 10px;
+    box-sizing: border-box;
+    color: rgba(0,0,0,0.7);
+    font-size: 14px;
+    background: #efefef;
+  }
+  .hidden {
+    display: none !important;
+  }
+  /*
+  .input-container {
+    margin: 10px;
+  }
+  */
+  .info {
+    font-size: 12px;
+    text-align: center;
+  }
+  .form-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 10px;
+    /*
+    padding: 10px 20px;
+    */
+  }
+  .stretch {
+    flex-grow: 1;
+  }
+  input[type=text] , select {
+    border: none;
+    /*
+    background: rgba(0,0,0,0.08);
+    */
+    background: rgba(0,0,0,0.2);
+    color: white;
+    padding: 5px 10px;
+    box-sizing: border-box;
+    width: 100%;
+    /*
+    width: 100px;
+    */
+  }
+  .logo {
+    color: white;
+    font-weight: bold;
+    text-decoration: none;
+    display: block;
+    font-size: 30px;
+    letter-spacing: -1px;
+    font-weight: bold;
+    font-family: georgia;
+
+  }
+  .config-container {
+  /*
+    width: 200px;
+    justify-content: center;
+    */
+    flex-wrap: wrap;
+    display: flex;
+  }
+  /*
+  .config-container {
+    display: flex;
+
+    flex-wrap: wrap;
+  }
+  */
+  .kv {
+    display: block;
+    font-size: 14px;
+    margin: 10px;
+    width :100px;
+  }
+  .kv label {
+    display: block;
+    padding: 5px;
+    color: white;
+    font-size: 12px;
+  }
+  body {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+  }
+  .container {
+    padding: 30px;
+    box-sizing: border-box;
+    background: rgb(43, 45, 49);
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  #terminal {
+    flex-grow: 1;
+  }
+  button#configure {
+    background: rgba(0,0,0,0.3);
+    color: white;
+    border: none;
+    cursor: pointer;
+    width: 100px;
+  }
+  .xterm .xterm-viewport {
+  }
+  .xterm {
+    box-sizing: border-box;
+  }
+  /*
+        #form { background: rgba(0, 0, 0, 0.15); padding: 0.25rem; position: fixed; bottom: 0; left: 0; right: 0; display: flex; height: 3rem; box-sizing: border-box; backdrop-filter: blur(10px); }
+      #input { border: none; padding: 0 1rem; flex-grow: 1; border-radius: 2rem; margin: 0.25rem; }
+      #input:focus { outline: none; }
+      #form > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
+      */
+
+</style>
+</head>
+<body>
+<header class='collapsed'>
+  <div class='form-header'></div>
+</header>
+<div class='container'>
+  <div id='terminal'></div>
+</div>
+<form id="form" action="">
+  <button id='settings'><i class="fa-solid fa-sliders"></i></button>
+  <div data-placeholder="Ask Alpaca" contenteditable id='input'></div>
+  <button id='send'><i class="fa-regular fa-paper-plane"></i></button>
+</form>
+<script src="/xterm.js"></script>
+<script src="/xterm-addon-fit.js"></script>
+<script src="/xterm-addon-web-links.js"></script>
+<script src="/xterm-theme.js"></script>
+<script src="/term.js"></script>
+<script src="/dal.js"></script>
+<script>
+class Shell {
+  constructor(selector) {
+    this.buffer = ""
+    this.term = new Term(document.querySelector(selector), {
+      theme: {
+        background: "rgb(43,45,49)",
+      },
+      onWriteParsed: () => {
+        this.term.term.scrollToBottom()
+      },
+      fontSize: 12,
+    });
+    this.dal = new Dal({
+      "llama_bin": "~/Projects/llama.cpp/main",
+      "alpaca_7b": "~/Documents/ggml-q4/models/alpaca-7B-ggml/ggml-model-q4_0.bin",
+      "alpaca_13b": "~/Documents/ggml-q4/models/alpaca-7B-ggml/ggml-model-q4_0.bin",
+      "llama_7b": "~/Projects/goat/llama/llama.7B/ggml-model-q4_0.bin",
+      "llama_13b": "~/Projects/goat/llama/llama.13B/ggml-model-q4_0.bin",
+      "alpaca_bootstrap": "~/Projects/llama.cpp/prompts/alpaca.txt",
+    } ,"ws://localhost:4200")
+  }
+  print(data) {
+    this.term.term.write(data)
+  }
+  async connect(req) {
+    await this.dal.init()
+    await this.dal.request({
+      message: Object.assign(req, {
+        _: [ "{{llama_bin}}" ],
+        model: "{{alpaca_7b}}",
+        instruct: true,
+        f: "{{alpaca_bootstrap}}",
+      }),
+      listen: [
+        { start: "/(.+)[\r\n]+>(.*)/gs", },
+        { end: "/(.+)[\r\n]+>(.*)/gs", },
+      ]
+    }, (stream) => {
+      this.print(stream.data)
+      if (stream.events.end) {
+        this.dal.respond()
+      }
+    })
+    this.connected = true
+  }
+  async request(q) {
+    await this.dal.request({
+      message: q,
+      listen: [ { end: "/(.+)[\r\n]+>(.*)/gs", } ],
+    }, (stream) => {
+      let msg = stream.data
+      if (stream.events.end) {
+        console.log("(**************** ENDED")
+        this.dal.respond()
+      }
+      this.print(msg)
+    })
+  }
+}
+
+const config = {
+  seed: -1,
+  threads: 4,
+  n_predict: 200,
+  top_k: 40,
+  top_p: 0.9,
+  temp: 0.1,
+  repeat_last_n: 64,
+  repeat_penalty: 1.3,
+  models: []
+}
+const form = document.getElementById('form');
+const input = document.querySelector('#input');
+const model = document.querySelector('#model');
+const renderHeader = (config) => {
+  console.log("renderHeader", config)
+  const fields = ["n_predict", "repeat_last_n", "repeat_penalty", "top_k", "top_p", "temp", "seed"].map((key) => {
+  //const fields = [{ key: "debug", type: "checkbox" }, "n_predict", "repeat_last_n", "repeat_penalty", "top_k", "top_p", "temp", "seed"].map((key) => {
+    if (typeof key === "string") {
+      return `<div class='kv'>
+<label>${key}</label>
+<input name="${key}" type='text' placeholder="${key}" value="${config[key] || ''}">
+</div>`
+    } else {
+      if (key.type === "checkbox") {
+      return `<div class='kv'>
+<label>${key.key}</label>
+<input name="${key.key}" type='checkbox' ${config[key.key] ? "checked" : ""}>
+</div>`
+      }
+    }
+
+  }).join("")
+
+
+  config.model = config.models[0]
+  const models = config.models.map((model, i) => {
+    return `<option value="${model}" ${i === 0 ? "selected" : ""}>${model}</option>`
+  }).join("")
+console.log("renderHeader", config)
+  shell.connect(config)
+  return `<a class='logo' href="/">Alpacaterm</a>
+  <div class='stretch'></div>
+<div class='config-container'>
+${fields}
+<div class='kv'>
+<label>model</label>
+<select id="model" name="model">${models}</select>
+</div>
+<button id='configure'>save</button>
+</div>`
+}
+
+const shell = new Shell("#terminal")
+document.querySelector("header").addEventListener("click", (e) => {
+  if (e.target.id === "configure") {
+    if (config.model.startsWith("alpaca")) {
+      shell.connect(config)
+    } else {
+      alert("only alpaca supported currently")
+    }
+  }
+})
+document.querySelector("header").addEventListener("input", (e) => {
+  if (e.target.tagName === "SELECT") {
+    config[e.target.name] = config.models[e.target.selectedIndex]
+  } else if (e.target.type === "checkbox") {
+    config[e.target.name] = e.target.checked
+  } else {
+    config[e.target.name] = e.target.value
+  }
+})
+document.querySelector("#settings").addEventListener("click", async () => {
+  document.querySelector("header").classList.toggle("collapsed")
+})
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  e.stopPropagation()
+  if (input.textContent) {
+    //config.prompt = input.textContent.replaceAll("\n", "\\n");
+//    config.id = "TS-" + Date.now() + "-" + Math.floor(Math.random() * 100000)
+    shell.request(input.textContent)
+//    config.id = null
+//    loading(config.prompt)
+    input.textContent = "";
+  }
+});
+input.addEventListener("keydown", (e) => {
+  if (e.keyCode === 13) {
+    e.preventDefault();
+    if (e.shiftKey) {
+      document.execCommand("insertLineBreak");
+    } else {
+      form.requestSubmit()
+    }
+  }
+})
+document.querySelector(".form-header").innerHTML = renderHeader(config)
+//const say = (msg, id) => {
+//  let item = document.createElement('li');
+//  if (id) item.setAttribute("data-id", id)
+//  item.textContent = msg;
+//  messages.prepend(item);
+//}
+var div = document.querySelector("[contenteditable]")
+setTimeout(function() {
+  div.focus();
+}, 0);
+</script>
+</body>
+</html>
